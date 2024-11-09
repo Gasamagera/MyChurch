@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const Country = require("./countryModel");
+const Occupation = require("./occupationModel");
 
 const memberSchema = new mongoose.Schema({
   firstName: {
@@ -19,8 +21,9 @@ const memberSchema = new mongoose.Schema({
     required: [true, "A member must have Age"],
   },
   country: {
-    type: String,
-    required: [true, "A member must have a country"],
+    type: mongoose.Schema.ObjectId,
+    ref: "Country",
+    required: [true, "Country must belong to a Member"],
   },
   province: {
     type: String,
@@ -45,8 +48,9 @@ const memberSchema = new mongoose.Schema({
     required: [true, "A member must have status"],
   },
   occupation: {
-    type: String,
-    required: [true, "A member must have occupation"],
+    type: mongoose.Schema.ObjectId,
+    ref: "Occupation",
+    required: [true, "Occupation Must Belong To  a Member"],
   },
   email: {
     type: String,
@@ -65,6 +69,17 @@ const memberSchema = new mongoose.Schema({
       message: "Please provide a valid phone number",
     },
   },
+});
+
+memberSchema.pre("/find", function (next) {
+  this.populate({
+    path: "country",
+    select: "name code",
+  }).populate({
+    path: "occupation",
+    select: "title duration description",
+  });
+  next();
 });
 
 const Member = mongoose.model("Member", memberSchema);
