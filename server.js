@@ -1,6 +1,7 @@
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 
+mongoose.set('strictPopulate', false);
 dotenv.config({ path: "./.env" });
 const app = require("./app");
 

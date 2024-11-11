@@ -4,6 +4,7 @@ const factory = require("./handlerFactory");
 
 exports.createMember = factory.createOne(Member);
 exports.updateMember = factory.updateOne(Member);
+exports.getMember = factory.getOne(Member, { path: "country,occupation" });
 exports.getAllMembers = factory.getAll(Member);
 exports.deleteMember = factory.deleteOne(Member);
 

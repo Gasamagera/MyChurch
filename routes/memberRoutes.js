@@ -14,6 +14,7 @@ router
   .post(memberController.createMember);
 router
   .route("/:id")
+  .get(memberController.getMember)
   .patch(memberController.updateMember)
   .delete(memberController.deleteMember);
 module.exports = router;

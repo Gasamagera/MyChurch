@@ -20,11 +20,13 @@ const memberSchema = new mongoose.Schema({
     type: Number,
     required: [true, "A member must have Age"],
   },
-  country: {
-    type: mongoose.Schema.ObjectId,
-    ref: "Country",
-    required: [true, "Country must belong to a Member"],
-  },
+  country: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: "Country",
+      required: [true, "Country must belong to a Member"],
+    },
+  ],
   province: {
     type: String,
     required: [true, "A member must have a province"],
@@ -47,11 +49,13 @@ const memberSchema = new mongoose.Schema({
     enum: ["Single", "Married", "separated", "divorced", "widowed"],
     required: [true, "A member must have status"],
   },
-  occupation: {
-    type: mongoose.Schema.ObjectId,
-    ref: "Occupation",
-    required: [true, "Occupation Must Belong To  a Member"],
-  },
+  occupation: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: "Occupation",
+      required: [true, "Occupation Must Belong To  a Member"],
+    },
+  ],
   email: {
     type: String,
     unique: true,
@@ -71,7 +75,7 @@ const memberSchema = new mongoose.Schema({
   },
 });
 
-memberSchema.pre("/find", function (next) {
+memberSchema.pre(/^find/, function (next) {
   this.populate({
     path: "country",
     select: "name code",
