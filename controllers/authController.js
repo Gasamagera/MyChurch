@@ -98,3 +98,19 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   next();
 });
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  const admin = await Admin.findById(req.user.id).select("+password");
+
+  if (
+    !(await admin.correctPassword(req.body.passwordCurrent, admin.password))
+  ) {
+    return next(new AppError("Your Password is Wrong!", 401));
+  }
+
+  admin.password = req.body.password;
+  admin.passwordConfirm = req.body.passwordConfirm;
+  await admin.save();
+
+  createSendTokwen(admin, 200, res);
+});
