@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const crypto = require("crypto");
 const bcyrpt = require("bcryptjs");
 
 const adminSchema = new mongoose.Schema({
@@ -35,6 +36,8 @@ const adminSchema = new mongoose.Schema({
     },
   },
   passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 });
 
 adminSchema.pre("save", async function (next) {
@@ -64,6 +67,20 @@ adminSchema.methods.changesPasswordAfter = function (JWTTimestamp) {
   }
 
   return false;
+};
+
+adminSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+    console.log({resetToken}, this.passwordResetToken)
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken
 };
 
 const Admin = mongoose.model("Admin", adminSchema);
