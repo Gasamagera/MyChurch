@@ -1,5 +1,6 @@
 const { promisify } = require("util");
 const catchAsync = require("./../utils/catchAsync");
+const crypto = require("crypto");
 const AppError = require("./../utils/appError");
 const sendEmail = require("./../utils/email");
 const jwt = require("jsonwebtoken");
@@ -129,19 +130,45 @@ exports.forgetPassword = catchAsync(async (req, res, next) => {
       message: "Token sent to email!",
     });
   } catch (err) {
-    console.log("email error",err)
+    console.log("email error", err);
     admin.passwordResetToken = undefined;
     admin.passwordResetExpires = undefined;
     await admin.save({ validateBeforeSave: false });
 
-    return next( 
+    return next(
       new AppError("There was an error sending the email. Try again leter!"),
       500
     );
   }
 });
 
-exports.resetPassword = (req, res, next) => {};
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+
+  const admin = await Admin.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!admin) {
+    return next(new AppError("Token is Invalid or has expired ", 400));
+  }
+  admin.password = req.body.password;
+  admin.passwordConfirm = req.body.passwordConfirm;
+  admin.passwordResetToken = undefined;
+  admin.passwordResetExpires = undefined;
+  await admin.save();
+
+  const token = signToken(admin._id);
+
+  res.status(200).json({
+    status: "success",
+    token,
+  });
+});
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
   const admin = await Admin.findById(req.user.id).select("+password");
